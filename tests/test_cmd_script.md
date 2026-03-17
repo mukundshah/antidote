@@ -95,6 +95,15 @@ Clone a missing plugin.
 %
 ```
 
+### commit:hash
+
+```zsh
+% antidote-script --commit abcd1230abcd1230abcd1230abcd1230abcd1230 foo/bar | subenv ANTIDOTE_HOME
+fpath+=( "$ANTIDOTE_HOME/foo/bar" )
+source "$ANTIDOTE_HOME/foo/bar/bar.plugin.zsh"
+%
+```
+
 ### kind:zsh
 
 ```zsh

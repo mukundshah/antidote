@@ -13,11 +13,12 @@
   local args=("$@[@]")
   local o_path o_quiet o_ff o_rebase o_autostash o_short
   local o_depth o_recurse_submodules o_shallow_submodules o_branch
-  local o_init o_recursive
+  local o_init o_recursive o_detach
   zparseopts -D -E --      \
     C:=o_path              \
     -short=o_short         \
     -quiet=o_quiet         \
+    -detach=o_detach       \
     -ff=o_ff               \
     -rebase=o_rebase       \
     -autostash=o_autostash \
@@ -29,6 +30,9 @@
     -recursive=o_recursive                  ||
     return 1
 
+  local bundledir
+  (( $#o_path )) && bundledir=${o_path[-1]}
+
   if [[ "$@" = "--version" ]]; then
     echo "mockgit version 0.0.0"
   elif [[ "$1" = "clone" ]]; then
@@ -39,6 +43,7 @@
     if [[ -d "$gitsite_repodir" ]]; then
       [[ -d "${bundledir:A}" ]] || mkdir -p "${bundledir:A}"
       cp -r -- "$gitsite_repodir" "${bundledir:A}"
+      echo "abcd1230abcd1230abcd1230abcd1230abcd1230" > "${bundledir:A}/.git/HEAD_COMMIT"
     elif ! (( $#o_quiet )); then
       echo "MOCKGIT: Cloning into '${repo:t}'..."
       echo "MOCKGIT: Repository not found."
@@ -58,11 +63,20 @@
     fi
   elif [[ "$@" = "pull" ]]; then
     (( $#o_quiet )) || echo "MOCKGIT: Already up to date."
+  elif [[ "$1" = "checkout" ]]; then
+    local commit="${@: -1}"
+    [[ -z "$bundledir" ]] || echo "$commit" > "${bundledir:A}/.git/HEAD_COMMIT"
   elif [[ "$@" = "rev-parse HEAD" ]]; then
-    if (( $#o_short )); then
-      echo "abcd123"
+    local mock_head_commit
+    if [[ -n "$bundledir" ]] && [[ -r "${bundledir:A}/.git/HEAD_COMMIT" ]]; then
+      mock_head_commit="$(<"${bundledir:A}/.git/HEAD_COMMIT")"
     else
-      echo "abcd1230abcd1230abcd1230abcd1230abcd1230"
+      mock_head_commit="abcd1230abcd1230abcd1230abcd1230abcd1230"
+    fi
+    if (( $#o_short )); then
+      echo "${mock_head_commit:0:7}"
+    else
+      echo "$mock_head_commit"
     fi
   elif [[ "$1" == (submodule|fetch) ]]; then
     # nothing to do

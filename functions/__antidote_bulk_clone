@@ -29,6 +29,9 @@
     # find branch annotation if it exists
     match($0, /branch:[^\t ]+/) { opts=opts " --branch " substr($0, RSTART+7, RLENGTH-7) }
 
+    # find commit annotation if it exists
+    match($0, /commit:[^\t ]+/) { opts=opts " --commit " substr($0, RSTART+7, RLENGTH-7) }
+
     # print result
     bundle!=""{ print "antidote-script", opts, bundle, "&" }
 

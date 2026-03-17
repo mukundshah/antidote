@@ -50,6 +50,8 @@ antidote-script foo/bar
 ```zsh
 % echo 'https://github.com/foo/bar path:lib branch:dev' | __antidote_parse_bundles
 antidote-script --branch dev --path lib https://github.com/foo/bar
+% echo 'https://github.com/foo/bar path:lib branch:dev commit:abcd1234' | __antidote_parse_bundles
+antidote-script --branch dev --commit abcd1234 --path lib https://github.com/foo/bar
 % echo 'git@github.com:foo/bar.git kind:clone branch:main' | __antidote_parse_bundles
 antidote-script --branch main --kind clone git@github.com:foo/bar.git
 % echo 'foo/bar kind:fpath abc:xyz' | __antidote_parse_bundles

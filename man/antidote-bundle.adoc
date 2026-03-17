@@ -29,6 +29,8 @@ Bundles also support annotations. Annotations allow you have finer grained contr
   * *autoload*: Autoload all the files in the plugin directory as zsh functions.
 `branch`::
   The branch annotation allows you to change the default branch of a plugin's repo from *main* to a branch of your choosing.
+`commit`::
+  The commit annotation pins a plugin repo to a specific commit hash (eg: `commit:abcd1234`).
 `path`::
   The path annotation allows you to use a subdirectory or file within a plugin's structure instead of the root plugin (eg: `path:plugins/subplugin`).
 `conditional`::
@@ -87,6 +89,13 @@ Using the *branch:* annotation:
 ----
 # don't use the main branch, use develop instead
 antidote bundle zsh-users/zsh-autosuggestions branch:develop
+----
+
+Using the *commit:* annotation:
+
+----
+# pin to an exact commit hash
+antidote bundle zsh-users/zsh-autosuggestions commit:abcd1234
 ----
 
 Using the *path:* annotation:

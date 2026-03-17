@@ -4,11 +4,13 @@
 #
 # usage: antidote script [-h|--help] [-k|--kind <kind>] [-p|--path <path>]
 #                        [-c|--conditional <func>] [-b|--branch <branch>]
+#                        [--commit <hash>]
 #                        [--pre <func>] [--post <func>] [--skip-load-defer]
 #                        [-a|--autoload <path>] <bundle>
 # <kind>   : zsh,path,fpath,defer,clone,autoload
 # <path>   : Relative path from the bundle root
 # <branch> : The git branch
+# <commit> : Pin bundle to an exact commit hash
 # <bundle> : A bundle can be a directory, a zsh script, or a git repo
 #
 
@@ -18,11 +20,12 @@
   local MATCH MBEGIN MEND; local -a match mbegin mend  # appease 'warn_create_global'
   local REPLY=
 
-  local -a o_help o_kind o_path o_branch o_cond o_autoload o_pre o_post o_fpath_rule o_skip_load_defer
+  local -a o_help o_kind o_path o_branch o_commit o_cond o_autoload o_pre o_post o_fpath_rule o_skip_load_defer
   zparseopts $_adote_zparopt_flags -- \
     h=o_help       -help=h            \
     a:=o_autoload  -autoload:=a       \
     b:=o_branch    -branch:=b         \
+                   -commit:=o_commit  \
     k:=o_kind      -kind:=k           \
     p:=o_path      -path:=p           \
                    -pre:=o_pre        \
@@ -45,6 +48,7 @@
   [[ $o_path[-1] =~ $re ]] && o_path[-1]=$match
   [[ $o_cond[-1] =~ $re ]] && o_cond[-1]=$match
   [[ $o_branch[-1] =~ $re ]] && o_branch[-1]=$match
+  [[ $o_commit[-1] =~ $re ]] && o_commit[-1]=$match
   [[ $o_pre[-1] =~ $re ]] && o_pre[-1]=$match
   [[ $o_post[-1] =~ $re ]] && o_post[-1]=$match
   [[ $o_fpath_rule[-1] =~ $re ]] && o_fpath_rule[-1]=$match
@@ -89,6 +93,17 @@
     print -ru2 "# antidote cloning $bundle_name..."
     git clone --quiet --recurse-submodules --shallow-submodules $o_branch $giturl $bundle_path >&2
     [[ $? -eq 0 ]] || return 1
+  fi
+
+  # Pin repo bundles to a specific commit when requested.
+  if [[ "$bundle_type" == (repo|url|sshurl) ]] && (( $#o_commit )); then
+    local current_commit desired_commit
+    desired_commit="$o_commit[-1]"
+    current_commit="$(git -C "$bundle_path" rev-parse HEAD 2>/dev/null)"
+    if [[ "$current_commit" != "$desired_commit" ]]; then
+      git -C "$bundle_path" fetch --quiet --tags >&2 || return 1
+      git -C "$bundle_path" checkout --quiet --detach "$desired_commit" >&2 || return 1
+    fi
   fi
 
   # if we only needed to clone the bundle, compile and we're done
